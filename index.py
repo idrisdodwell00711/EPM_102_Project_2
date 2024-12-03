@@ -1,9 +1,10 @@
 import cv2 
-import numpy as np 
+import numpy as np
+from matplotlib import pyplot as plt
 
 # Takes a training img and testing img as inputs and outputs the object matches between the two.
 class ObjectDetector:
-    def __init__(self, detector_type, matcher_type, img1, img2):
+    def __init__(self, detector_type, img1, img2):
         self.detector_type = detector_type
         if detector_type == "sift":
             self.detector = cv2.SIFT_create(1000, 3, 0.09)
@@ -37,14 +38,31 @@ class ObjectDetector:
         # Storing coordinates of points corresponding to the matches found in both the images
         src_pts = []
         dst_pts = []
-    
-        for Match in good_matches:
-            src_pts.append(keypoints1[Match[0].queryIdx].pt)
-            dst_pts.append(keypoints2[Match[0].trainIdx].pt)
+        if len(good_matches)> 10:
+            for Match in good_matches:
+                 src_pts = np.float32([ keypoints1[m.queryIdx].pt for m in good_matches ]).reshape(-1,1,2)
+                 dst_pts = np.float32([ keypoints2[m.trainIdx].pt for m in good_matches ]).reshape(-1,1,2)
 
-        # Compute homography
-        H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-# img1 = cv2.imread( './img_query_1.jpg')
+            # Compute homography
+            H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+            matchesMask = mask.ravel().tolist()
+            h,w = img1.shape[:2]
+            pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
+            dst = cv2.perspectiveTransform(pts,H)
+            img2 = cv2.polylines(img2,[np.int32(dst)],True,255,3, cv2.LINE_AA)
+        else:
+             print( "Not enough matches are found - {}/{}".format(len(good_matches), 10) )
+             matchesMask = None
+        draw_params = dict(matchColor = (0,255,0), # draw matches in green color
+                   singlePointColor = None,
+                   matchesMask = matchesMask, # draw only inliers
+                   flags = 2)
+        img3 = cv2.drawMatches(img1,keypoints1,img2,keypoints2,good_matches,None,**draw_params)
+        plt.imshow(img3, 'gray'),plt.show()
+img2 = cv2.imread( './img_query_1.jpg')
+img1 = cv2.imread( './img_train.jpg')
+
+detect = ObjectDetector(detector_type='sift', img1=img1, img2=img2)
 
 # cv2.imshow('img1', img1 )
 
