@@ -9,7 +9,7 @@ class ObjectDetector:
         if detector_type == "sift":
             self.detector = cv2.SIFT_create(1000, 3, 0.09)
         elif detector_type == "orb":
-            self.detector = cv2.ORB_create(nfeatures=500)
+            self.detector = cv2.ORB_create(nfeatures=5000)
         else:
             raise ValueError("Detector type unknown.")
         
