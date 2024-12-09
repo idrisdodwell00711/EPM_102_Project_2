@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 
 # HSI Preprocessing Class
+# HSI gave better results in matching
 class HSIConverter:
     @staticmethod
     def convert_to_hsi(image):
@@ -10,15 +11,15 @@ class HSIConverter:
         return image_hsi
 
     @staticmethod
-    # Extract intensity channel
+    # Extract intensity channel from HSI image
     def get_intensity_channel(image_hsi):
         return image_hsi[:, :, 2]  
 
 # Feature Detector Class
 class SIFTDetector:
     def __init__(self):
-        # SIFT with the octave and contrast threshold given in the documentation
-        self.detector = cv2.SIFT_create(1000, 3, 0.09)
+        # SIFT with the octave and contrast threshold given in the documentation. The nfeatures was found by trial and error.
+        self.detector = cv2.SIFT_create(2000, 3, 0.09)
 
     def detect_and_compute(self, image, mask=None):
         return self.detector.detectAndCompute(image, mask)
@@ -35,8 +36,9 @@ class FLANNMatcher:
     def match(self, desc1, desc2):
         # Setting K nearest neighbours to 2
         matches = self.matcher.knnMatch(desc1, desc2, k=2)
-        # Lowe's ratio test to remove bad matches in a robust manner
-        good_matches = [m for m, n in matches if m.distance < 0.7 * n.distance]  
+        # Lowe's ratio test to remove bad matches in a robust manner. The constant, 0.85 gave the best all round results.
+        good_matches = [m for m, n in matches if m.distance < 0.85 * n.distance] 
+        good_matches = sorted(good_matches, key=lambda x: x.distance)
         return good_matches
 
 # Object Detection Processor
@@ -63,8 +65,8 @@ class ObjectDetectionProcessor:
         src_pts = np.float32([train_keypoints[m.queryIdx].pt for m in matches]).reshape(-1, 1, 2)
         dst_pts = np.float32([query_keypoints[m.trainIdx].pt for m in matches]).reshape(-1, 1, 2)
 
-        # Removing outliers with Ransac and computing the homography matrix. The delta for Ransac is set to 2.0.
-        homography, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 2.0)
+        # Removing outliers with Prosac and computing the homography matrix. The delta for Prosac is set to 4.5.
+        homography, mask = cv2.findHomography(src_pts, dst_pts, cv2.RHO, 4.5)
 
         if homography is not None:
             train_bbox = np.float32(train_bbox).reshape(-1, 1, 2)

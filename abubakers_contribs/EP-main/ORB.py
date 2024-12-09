@@ -4,7 +4,7 @@ import numpy as np
 # Detector Class
 class ORBDetector:
     def __init__(self):
-        self.detector = cv2.ORB_create(nfeatures=1000)
+        self.detector = cv2.ORB_create(nfeatures=5000)
 
     def detect_and_compute(self, image, mask=None):
         keypoints, descriptors = self.detector.detectAndCompute(image, mask)
@@ -19,7 +19,7 @@ class BFHammingWithRatioMatcher:
         matches = self.matcher.knnMatch(desc1, desc2, k=2)
         good_matches = []
         for m, n in matches:
-            if m.distance < 0.55 * n.distance:  # Relaxed ratio test threshold
+            if m.distance < 0.85 * n.distance:  # Relaxed ratio test threshold
                 good_matches.append(m)
         return good_matches
 
@@ -59,7 +59,7 @@ class ObjectDetectionProcessor:
         src_pts = np.float32([train_keypoints[m.queryIdx].pt for m in matches]).reshape(-1, 1, 2)
         dst_pts = np.float32([query_keypoints[m.trainIdx].pt for m in matches]).reshape(-1, 1, 2)
 
-        homography, mask = cv2.findHomography(src_pts, dst_pts, cv2.RHO, 5.0)
+        homography, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 
         if homography is not None:
             train_bbox = np.float32(train_bbox).reshape(-1, 1, 2)
