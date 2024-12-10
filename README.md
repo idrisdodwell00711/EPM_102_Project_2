@@ -7,6 +7,9 @@ Run - pip install numpy
 
 Run - python index.py
 
+Make sure you are using Python 3.9.
+To set up a virtual conda enviroment on VS code, control P, then select python 3.9 and conda env.
+
 The code will display all the objects, their matches, and a bounding box with the object's name. The method used returns the X and Y coordinates of the bounding box.
 Although this is not used, it is printed off. To access the coordinates please save the object's method call (e.g. processor.process_query_images()) to a variable 
 (i.e. x_y_BB = processor.process_query_images(query_images, train_image, train_bboxes, object_names, query_objects)).
