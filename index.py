@@ -138,6 +138,7 @@ class ObjectDetectionProcessor:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
         # Returns X and Y of query bounding box in a list.
+        print(query_bbox)
         return query_bbox
 
 # Main Program
