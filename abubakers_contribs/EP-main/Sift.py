@@ -8,6 +8,7 @@ class HSIConverter:
     def convert_to_hsi(image):
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image_hsi = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2HSV)
+        
         return image_hsi
 
     @staticmethod
@@ -67,6 +68,7 @@ class ObjectDetectionProcessor:
 
         # Removing outliers with Prosac and computing the homography matrix. The delta for Prosac is set to 4.5.
         homography, mask = cv2.findHomography(src_pts, dst_pts, cv2.RHO, 4.5)
+        
 
         if homography is not None:
             train_bbox = np.float32(train_bbox).reshape(-1, 1, 2)
@@ -90,8 +92,10 @@ class ObjectDetectionProcessor:
             matchColor=(255, 0, 0), singlePointColor=None, flags=2
         )
         # Prints out the X and Y coordinates of the object detected
-        print(query_keypoints[0].pt, query_keypoints[1].pt)
+        print(f"X and Y of object detected {query_keypoints[0].pt, query_keypoints[1].pt}")
         cv2.imshow(f"Query {query_idx + 1} - Matches and Detection: {object_name}", match_img)
+        
+        
 
     def process_query_images(self, query_images, train_image, train_bboxes, object_names, query_objects):
         train_img_color = cv2.imread(train_image)
@@ -105,6 +109,7 @@ class ObjectDetectionProcessor:
             query_intensity = HSIConverter.get_intensity_channel(query_hsi)
 
             query_keypoints, query_descriptors = self.detector.detect_and_compute(query_intensity)
+            
 
             for obj_idx in relevant_objects:
                 train_bbox = train_bboxes[obj_idx]
@@ -132,6 +137,8 @@ class ObjectDetectionProcessor:
 
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+        # Returns X and Y of query bounding box in a list.
+        return query_bbox
 
 # Main Program
 if __name__ == "__main__":

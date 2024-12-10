@@ -2,12 +2,12 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-img2 = cv2.imread('img_query_2.jpg')
-img1 = cv2.imread('train_2.jpg')
+img2 = cv2.imread('img_query_3.jpg')
+img1 = cv2.imread('result_image.png')
 
 
 
-sift = cv2.ORB_create(5000)
+sift = cv2.SIFT_create(2000, 6, 0.18)
        
         
 gray_img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
@@ -17,13 +17,13 @@ keypoints1, descriptors1 = sift.detectAndCompute(gray_img1, None)
 keypoints2, descriptors2 = sift.detectAndCompute(gray_img2, None)
         
       
-bf = cv2.BFMatcher(cv2.NORM_HAMMING2, crossCheck=False)  # Use NORM_L2 for SIFT
+bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)  # Use NORM_L2 for SIFT
        
             
 matches = bf.knnMatch(descriptors1, descriptors2, k=2)
 good_matches = []
 for m, n in matches:
-            if m.distance < 0.75 * n.distance:
+            if m.distance < 0.8 * n.distance:
                 good_matches.append(m)
         # Sort matches by distance
 good_matches = sorted(good_matches, key=lambda x: x.distance)
@@ -38,7 +38,7 @@ if len(good_matches)> 10:
                 dst_pts = np.float32([ keypoints2[m.trainIdx].pt for m in good_matches ]).reshape(-1,1,2)
 
             # Compute homography
-            H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RHO, 3.0)
+            H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 4.0)
             matchesMask = mask.ravel().tolist()
             h,w = img1.shape[:2]
             pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
