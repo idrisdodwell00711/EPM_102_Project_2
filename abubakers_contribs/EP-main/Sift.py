@@ -89,6 +89,8 @@ class ObjectDetectionProcessor:
             train_masked_img, train_keypoints, query_img_with_bbox, query_keypoints, matches, None,
             matchColor=(255, 0, 0), singlePointColor=None, flags=2
         )
+        # Prints out the X and Y coordinates of the object detected
+        print(query_keypoints[0].pt, query_keypoints[1].pt)
         cv2.imshow(f"Query {query_idx + 1} - Matches and Detection: {object_name}", match_img)
 
     def process_query_images(self, query_images, train_image, train_bboxes, object_names, query_objects):
